@@ -1,0 +1,12 @@
+sudo_interval: 60
+
+backup:
+  enabled: true
+  suffix: ".bak"
+
+package:
+  manager:
+    apk: "sudo apk add"
+    apt: "sudo apt-get install -y"
+    dnf: "sudo dnf install -y"
+    pacman: "sudo pacman -S --needed --noconfirm"
