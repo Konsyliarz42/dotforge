@@ -39,7 +39,6 @@ run_module() {
         copy) copy $step_index "$file" "$log_file" ;;
         install) install_packages $step_index "$file" "$log_file" ;;
         link) create_symlink $step_index "$file" "$log_file" ;;
-        module) run_submodule $step_index "$file" "$log_file" ;;
         service) manage_service $step_index "$file" "$log_file" ;;
         esac
 
@@ -181,23 +180,6 @@ create_symlink() {
     # mkdir -p "$(dirname "$target")" >> "$log_file"
     echo_log "> ln -sf $(realpath "$source") $target" "$log_file"
     # ln -sf "$(realpath "$source")" "$target" >> "$log_file"
-}
-
-run_submodule() {
-    local step_index="$1"
-    local file="$2"
-    local log_file="$3"
-
-    echo_log "Executing step: $step_index(module)" "$log_file"
-
-    local path
-    local name
-
-    path=$(get_or_null ".steps[$step_index].path" "$file")
-    name=$(get_or_null ".name" "$path")
-
-    echo_log "> run_module $path" "$log_file"
-    run_module "$path"
 }
 
 manage_service() {

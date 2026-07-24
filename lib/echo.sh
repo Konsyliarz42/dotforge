@@ -1,5 +1,31 @@
 #!/bin/bash
 
+echo_hello() {
+    local name="DOTFORGE"
+
+    local branch=$(git config -f .gitmodules --get submodule.dotforge.branch)
+    if [[ -z "$branch" ]]; then
+        branch=$(git branch --show-current)
+    fi
+
+    local format
+    format="\033[1m%s\033[0m"
+    format+="\040\033[30m%s\033[0m"
+    format+="\n"
+
+    printf "$format" "$name" "$branch"
+}
+
+echo_profile() {
+    local text="Processing profile: $1"
+
+    local format
+    format="%s"
+    format+="\n"
+
+    printf "$format" "$text"
+}
+
 echo_module() {
     local text="Processing module: $1"
     local decorator="== "
@@ -66,6 +92,15 @@ echo_error() {
     format="\033[0;31mError:\033[0m"
     format+=" %s"
     format+="\n"
+
+    printf "$format" "$text"
+}
+
+echo_info() {
+    local text="$1"
+
+    local format
+    format="\033[0;31m%s\033[0m"
 
     printf "$format" "$text"
 }

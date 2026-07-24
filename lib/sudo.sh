@@ -4,7 +4,7 @@ SUDO_PID=""
 
 check_not_root() {
     if [[ "${EUID}" -eq 0 ]]; then
-        echo "ERROR: Do not run this script with sudo/as root."
+        echo_error "Do not run this script with sudo/as root."
         exit 1
     fi
 }
