@@ -14,7 +14,9 @@ run_sudo() {
 
     get_config ".sudo_interval" interval
 
-    sudo -v
+    if ! sudo -v; then
+        exit 1
+    fi
 
     while true; do
         sudo -n true

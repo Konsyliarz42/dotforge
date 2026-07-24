@@ -101,10 +101,11 @@ echo_error_validate() {
     local text="$2"
 
     local format
-    format="\033[0;31m%s\033[0m"
+    format="\n"
+    format+="\033[0;31m%s\033[0m"
     format+="\n"
     format+="%s"
-    format+="\n\n"
+    format+="\n"
 
     printf "$format" "$pre_text" "$text"
 }

@@ -74,7 +74,7 @@ git_clone() {
     echo_step "${description:-"Cloning repository"}"
 
     echo_log "> git clone $url $target" "$log_file"
-    # git clone "$url" "$target" >> "$log_file"
+    git clone "$url" "$target" >>"$log_file"
 }
 
 run_command() {
@@ -93,7 +93,7 @@ run_command() {
     echo_step "${description:-"Executing command"}"
 
     echo_log "> eval $cmd" "$log_file"
-    # eval "$cmd" >> "$log_file"
+    eval "$cmd" >>"$log_file"
 }
 
 copy() {
@@ -120,13 +120,13 @@ copy() {
 
     if [[ -e "$target" && "$backup" == "true" ]]; then
         echo_log "> mv $target ${target}${backup_suffix}" "$log_file"
-        # mv "$target" "${target}${backup_suffix}" >> "$log_file"
+        mv "$target" "${target}${backup_suffix}" >>"$log_file"
     fi
 
     echo_log "> mkdir -p $(dirname "$target")" "$log_file"
-    # mkdir -p "$(dirname "$target")" >> "$log_file"
+    mkdir -p "$(dirname "$target")" >>"$log_file"
     echo_log "> cp -r $source $target" "$log_file"
-    # cp -r "$source" "$target" >> "$log_file"
+    cp -r "$source" "$target" >>"$log_file"
 }
 
 install_packages() {
@@ -150,7 +150,7 @@ install_packages() {
     echo_step "${description:-"Installing packages"}"
 
     echo_log "> eval $cmd ${packages[*]}" "$log_file"
-    # eval "$cmd" "${packages[@]}" >> "$log_file"
+    eval "$cmd" "${packages[@]}" >>"$log_file"
 }
 
 create_symlink() {
@@ -177,13 +177,13 @@ create_symlink() {
 
     if [[ -e "$target" && "$backup" == "true" ]]; then
         echo_log "> mv $target ${target}${backup_suffix}" "$log_file"
-        # mv "$target" "${target}${backup_suffix}" >> "$log_file"
+        mv "$target" "${target}${backup_suffix}" >>"$log_file"
     fi
 
     echo_log "> mkdir -p $(dirname "$target")" "$log_file"
-    # mkdir -p "$(dirname "$target")" >> "$log_file"
+    mkdir -p "$(dirname "$target")" >>"$log_file"
     echo_log "> ln -sf $(realpath "$source") $target" "$log_file"
-    # ln -sf "$(realpath "$source")" "$target" >> "$log_file"
+    ln -sf "$(realpath "$source")" "$target" >>"$log_file"
 }
 
 manage_service() {
@@ -212,5 +212,5 @@ manage_service() {
     esac
 
     echo_log "> eval $cmd $action $name" "$log_file"
-    # eval "$cmd" "$action" "$name" >> "$log_file"
+    eval "$cmd" "$action" "$name" >>"$log_file"
 }
