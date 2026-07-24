@@ -100,7 +100,8 @@ echo_info() {
     local text="$1"
 
     local format
-    format="\033[0;31m%s\033[0m"
+    format="\033[0;34m%s\033[0m"
+    format+="\n"
 
     printf "$format" "$text"
 }

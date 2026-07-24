@@ -1,5 +1,6 @@
 #!/bin/bash
 
+EXIT_CODE=0
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 CONFIG_FILE=""
@@ -14,25 +15,25 @@ path=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -p|--profile)
-            profile=true
-            shift
-            ;;
+    -p | --profile)
+        profile=true
+        shift
+        ;;
 
-        -*)
-            echo_error "Unknown argument"
+    -*)
+        echo_error "Unknown argument"
+        exit 1
+        ;;
+
+    *)
+        if [[ -n "$path" ]]; then
+            echo_error ""
             exit 1
-            ;;
+        fi
 
-        *)
-            if [[ -n "$path" ]]; then
-                echo_error ""
-                exit 1
-            fi
-
-            path="$1"
-            shift
-            ;;
+        path="$1"
+        shift
+        ;;
     esac
 done
 
@@ -47,3 +48,4 @@ else
     validate_module "$path"
 fi
 
+exit $EXIT_CODE

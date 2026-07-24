@@ -10,10 +10,12 @@ validate_profile() {
     modules=$(get_or_null ".modules[]" "$file")
 
     if [[ -z "$name" ]]; then
+        EXIT_CODE=1
         echo_error "$file: Missing property: name"
     fi
 
     if [[ -z "$steps" ]]; then
+        EXIT_CODE=1
         echo_error "$file: Profile must have at least 1 module"
     fi
 }
@@ -35,20 +37,23 @@ validate_module() {
     steps_count=$(get_or_null ".steps | length" "$file")
 
     if [[ -z "$name" ]]; then
+        EXIT_CODE=1
         echo_error "$file: Missing property: name"
     fi
 
     if [[ -z "$strict" ]]; then
+        EXIT_CODE=1
         echo_error "$file: Missing property: strict"
     else
         case "$strict" in
         true) ;;
         false) ;;
-        *) echo_error "$file: Strict must be a boolean" ;;
+        *)     EXIT_CODE=1; echo_error "$file: Strict must be a boolean" ;;
         esac
     fi
 
     if [[ -z "$steps" ]]; then
+        EXIT_CODE=1
         echo_error "$file: Module must have at least 1 step"
     else
         for ((step_index = 0; step_index < steps_count; step_index++)); do
@@ -82,10 +87,12 @@ validate_step_clone() {
     target=$(get_or_null ".steps[$step_index].target" "$file")
 
     if [[ -z "$url" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: url"
     fi
 
     if [[ -z "$target" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: target"
     fi
 }
@@ -99,6 +106,7 @@ validate_step_command() {
     cmd=$(get_or_null ".steps[$step_index].cmd" "$file")
 
     if [[ -z "$cmd" ]]; then
+            EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: cmd"
     fi
 }
@@ -114,10 +122,12 @@ validate_step_copy() {
     target=$(get_or_null ".steps[$step_index].target" "$file")
 
     if [[ -z "$source" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: source"
     fi
 
     if [[ -z "$target" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: target"
     fi
 }
@@ -135,14 +145,17 @@ validate_step_install() {
     packages=$(get_or_null ".steps[$step_index].packages" "$file")
 
     if [[ -z "$manager" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: manager"
     fi
 
     if [[ -z "$packages" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: packages"
     fi
 
     if [[ -z "$manager_config" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Unknown manager"
     fi
 
@@ -159,10 +172,12 @@ validate_step_link() {
     target=$(get_or_null ".steps[$step_index].target" "$file")
 
     if [[ -z "$source" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: source"
     fi
 
     if [[ -z "$target" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: target"
     fi
 }
@@ -188,21 +203,23 @@ validate_step_service() {
         restart) ;;
         start) ;;
         stop) ;;
-        *) echo_error "$file - $step_index: Unknown action" ;;
+        *)     EXIT_CODE=1; echo_error "$file - $step_index: Unknown action" ;;
         esac
     fi
 
     if [[ -z "$name" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: name"
     fi
 
     if [[ -z "$scope" ]]; then
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: scope"
     else
         case "$scope" in
         user) ;;
         system) ;;
-        *) echo_error "$file - $step_index: Unknown scope" ;;
+        *)     EXIT_CODE=1; echo_error "$file - $step_index: Unknown scope" ;;
         esac
     fi
 }
