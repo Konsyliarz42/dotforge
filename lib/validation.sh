@@ -11,12 +11,12 @@ validate_profile() {
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
-        echo_error "$file: Missing property: name"
+        echo_error "Missing property: name"
     fi
 
-    if [[ -z "$steps" ]]; then
+    if [[ -z "$modules" ]]; then
         EXIT_CODE=1
-        echo_error "$file: Profile must have at least 1 module"
+        echo_error "Profile must have at least 1 module"
     fi
 }
 
@@ -38,26 +38,26 @@ validate_module() {
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
-        echo_error "$file: Missing property: name"
+        echo_error "Missing property: name"
     fi
 
     if [[ -z "$strict" ]]; then
         EXIT_CODE=1
-        echo_error "$file: Missing property: strict"
+        echo_error "Missing property: strict"
     else
         case "$strict" in
         true) ;;
         false) ;;
         *)
             EXIT_CODE=1
-            echo_error "$file: Strict must be a boolean"
+            echo_error "Strict must be a boolean"
             ;;
         esac
     fi
 
     if [[ -z "$steps" ]]; then
         EXIT_CODE=1
-        echo_error "$file: Module must have at least 1 step"
+        echo_error "Module must have at least 1 step"
     else
         for ((step_index = 0; step_index < steps_count; step_index++)); do
             local type
@@ -93,12 +93,12 @@ validate_step_clone() {
 
     if [[ -z "$url" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: url"
+        echo_error "Missing property: url"
     fi
 
     if [[ -z "$target" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: target"
+        echo_error "Missing property: target"
     fi
 }
 
@@ -112,7 +112,7 @@ validate_step_command() {
 
     if [[ -z "$cmd" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: cmd"
+        echo_error "Missing property: cmd"
     fi
 }
 
@@ -128,12 +128,12 @@ validate_step_copy() {
 
     if [[ -z "$source" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: source"
+        echo_error "Missing property: source"
     fi
 
     if [[ -z "$target" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: target"
+        echo_error "Missing property: target"
     fi
 }
 
@@ -151,17 +151,17 @@ validate_step_install() {
 
     if [[ -z "$manager" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: manager"
+        echo_error "Missing property: manager"
     fi
 
     if [[ -z "$packages" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: packages"
+        echo_error "Missing property: packages"
     fi
 
     if [[ -z "$manager_config" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Unknown manager"
+        echo_error "Unknown manager"
     fi
 
 }
@@ -178,12 +178,12 @@ validate_step_link() {
 
     if [[ -z "$source" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: source"
+        echo_error "Missing property: source"
     fi
 
     if [[ -z "$target" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: target"
+        echo_error "Missing property: target"
     fi
 }
 
@@ -200,7 +200,7 @@ validate_step_service() {
     scope=$(get_or_null ".steps[$step_index].scope" "$file")
 
     if [[ -z "$action" ]]; then
-        echo_error "$file - $step_index: Missing property: action"
+        echo_error "Missing property: action"
     else
         case "$action" in
         disable) ;;
@@ -210,26 +210,26 @@ validate_step_service() {
         stop) ;;
         *)
             EXIT_CODE=1
-            echo_error "$file - $step_index: Unknown action"
+            echo_error "Unknown action"
             ;;
         esac
     fi
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: name"
+        echo_error "Missing property: name"
     fi
 
     if [[ -z "$scope" ]]; then
         EXIT_CODE=1
-        echo_error "$file - $step_index: Missing property: scope"
+        echo_error "Missing property: scope"
     else
         case "$scope" in
         user) ;;
         system) ;;
         *)
             EXIT_CODE=1
-            echo_error "$file - $step_index: Unknown scope"
+            echo_error "Unknown scope"
             ;;
         esac
     fi
