@@ -146,23 +146,21 @@ validate_step_install() {
     get_or_null ".steps[$step_index].manager" "$file" manager
     get_or_null ".steps[$step_index].packages" "$file" packages
 
-    get_config ".package.manager.$manager" manager_config
-
     if [[ -z "$manager" ]]; then
         EXIT_CODE=1
         echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: manager"
+    else
+        get_config ".package.manager.$manager" manager_config
+        if [[ -z "$manager_config" ]]; then
+            EXIT_CODE=1
+            echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown manager"
+        fi
     fi
 
     if [[ -z "$packages" ]]; then
         EXIT_CODE=1
         echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: packages"
     fi
-
-    if [[ -z "$manager_config" ]]; then
-        EXIT_CODE=1
-        echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown manager"
-    fi
-
 }
 
 validate_step_link() {

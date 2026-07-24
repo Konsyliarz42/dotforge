@@ -104,7 +104,7 @@ echo_error_validate() {
     format="\033[0;31m%s\033[0m"
     format+="\n"
     format+="%s"
-    format+="\n"
+    format+="\n\n"
 
     printf "$format" "$pre_text" "$text"
 }
