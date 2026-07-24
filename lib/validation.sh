@@ -1,8 +1,6 @@
 validate_profile() {
     local file="$1"
 
-    echo_info "Profile:" " $(realpath "$file")"
-
     local name
     local modules
 
@@ -11,12 +9,12 @@ validate_profile() {
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: name"
+        echo_error_validate "$(realpath "$file")" "Missing property: name"
     fi
 
     if [[ -z "$modules" ]]; then
         EXIT_CODE=1
-        echo_error "Profile must have at least 1 module"
+        echo_error_validate "$(realpath "$file")" "Profile must have at least 1 module"
     fi
 
     for module in "${modules[@]}"; do
@@ -26,8 +24,6 @@ validate_profile() {
 
 validate_module() {
     local file="$1"
-
-    echo_info "Module:" " $(realpath "$file")"
 
     local name
     local strict
@@ -42,31 +38,29 @@ validate_module() {
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: name"
+        echo_error_validate "$(realpath "$file")" "Missing property: name"
     fi
 
     if [[ -z "$strict" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: strict"
+        echo_error_validate "$(realpath "$file")" "Missing property: strict"
     else
         case "$strict" in
         true) ;;
         false) ;;
         *)
             EXIT_CODE=1
-            echo_error "Strict must be a boolean"
+            echo_error_validate "$(realpath "$file")" "Strict must be a boolean"
             ;;
         esac
     fi
 
     if [[ -z "$steps" ]]; then
         EXIT_CODE=1
-        echo_error "Module must have at least 1 step"
+        echo_error_validate "$(realpath "$file")" "Module must have at least 1 step"
     else
         for ((step_index = 0; step_index < steps_count; step_index++)); do
             local type
-
-            echo_info "Step:" " $step_index"
 
             get_or_null ".steps[$step_index].type" "$file" type
 
@@ -97,12 +91,12 @@ validate_step_clone() {
 
     if [[ -z "$url" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: url"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: url"
     fi
 
     if [[ -z "$target" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: target"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: target"
     fi
 }
 
@@ -116,7 +110,7 @@ validate_step_command() {
 
     if [[ -z "$cmd" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: cmd"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: cmd"
     fi
 }
 
@@ -132,12 +126,12 @@ validate_step_copy() {
 
     if [[ -z "$source" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: source"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: source"
     fi
 
     if [[ -z "$target" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: target"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: target"
     fi
 }
 
@@ -156,17 +150,17 @@ validate_step_install() {
 
     if [[ -z "$manager" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: manager"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: manager"
     fi
 
     if [[ -z "$packages" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: packages"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: packages"
     fi
 
     if [[ -z "$manager_config" ]]; then
         EXIT_CODE=1
-        echo_error "Unknown manager"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown manager"
     fi
 
 }
@@ -183,12 +177,12 @@ validate_step_link() {
 
     if [[ -z "$source" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: source"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: source"
     fi
 
     if [[ -z "$target" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: target"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: target"
     fi
 }
 
@@ -205,7 +199,7 @@ validate_step_service() {
     get_or_null ".steps[$step_index].scope" "$file" scope
 
     if [[ -z "$action" ]]; then
-        echo_error "Missing property: action"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: action"
     else
         case "$action" in
         disable) ;;
@@ -215,26 +209,26 @@ validate_step_service() {
         stop) ;;
         *)
             EXIT_CODE=1
-            echo_error "Unknown action"
+            echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown action"
             ;;
         esac
     fi
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: name"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: name"
     fi
 
     if [[ -z "$scope" ]]; then
         EXIT_CODE=1
-        echo_error "Missing property: scope"
+        echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: scope"
     else
         case "$scope" in
         user) ;;
         system) ;;
         *)
             EXIT_CODE=1
-            echo_error "Unknown scope"
+            echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown scope"
             ;;
         esac
     fi

@@ -25,13 +25,11 @@ get_config() {
 
     if [[ "$key" == *"[]" ]]; then
         result=()
-
         if ((${#result[@]} == 0)); then
             get_or_null "$key" "$DEFAULT_CONFIG_FILE" "$result_name"
         fi
     else
         result=""
-
         if [[ -z "$result" ]]; then
             get_or_null "$key" "$DEFAULT_CONFIG_FILE" "$result_name"
         fi

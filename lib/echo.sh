@@ -96,12 +96,13 @@ echo_error() {
     printf "$format" "$text"
 }
 
-echo_info() {
+echo_error_validate() {
     local pre_text="$1"
     local text="$2"
 
     local format
-    format="\033[0;34m%s\033[0m"
+    format="\033[0;31m%s\033[0m"
+    format+="\n"
     format+="%s"
     format+="\n"
 
