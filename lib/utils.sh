@@ -3,30 +3,25 @@
 get_or_null() {
     local key="$1"
     local file="$2"
-
-    local value
+    local -n result="$3"
 
     if [[ "$key" == *"[]" ]]; then
-        mapfile -t value < <(yq -r "$key" "$file")
-        echo "${value[@]}"
+        mapfile -t result < <(yq -r "$key" "$file")
     else
-        value=$(yq -r "$key // \"\"" "$file")
-        echo "$value"
+        result=("$(yq -r "$key // \"\"" "$file")")
     fi
 }
 
 get_config() {
     local key="$1"
-
-    local value=""
+    local -n result="$2"
 
     if [[ -n "$CONFIG_FILE" ]]; then
-        value=$(get_or_null "$key" "$CONFIG_FILE")
+        get_or_null "$key" "$CONFIG_FILE" result
     fi
 
     if [[ -z "$value" ]]; then
-        value=$(get_or_null "$key" "$DEFAULT_CONFIG_FILE")
+        get_or_null "$key" "$DEFAULT_CONFIG_FILE" result
     fi
 
-    echo "$value"
 }

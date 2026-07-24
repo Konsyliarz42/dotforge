@@ -6,8 +6,8 @@ validate_profile() {
     local name
     local modules
 
-    name=$(get_or_null ".name" "$file")
-    modules=$(get_or_null ".modules[]" "$file")
+    get_or_null ".name" "$file" name
+    get_or_null ".modules[]" "$file" modules
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
@@ -18,6 +18,10 @@ validate_profile() {
         EXIT_CODE=1
         echo_error "Profile must have at least 1 module"
     fi
+
+    for module in "${modules[@]}"; do
+        validate_module "$module"
+    done
 }
 
 validate_module() {
@@ -31,10 +35,10 @@ validate_module() {
     local step_index
     local steps_count
 
-    name=$(get_or_null ".name" "$file")
-    strict=$(get_or_null ".strict" "$file")
-    steps=$(get_or_null ".steps[]" "$file")
-    steps_count=$(get_or_null ".steps | length" "$file")
+    get_or_null ".name" "$file" name
+    get_or_null ".strict" "$file" strict
+    get_or_null ".steps[]" "$file" steps
+    get_or_null ".steps | length" "$file" steps_count
 
     if [[ -z "$name" ]]; then
         EXIT_CODE=1
@@ -64,7 +68,7 @@ validate_module() {
 
             echo_info "Step:" " $step_index"
 
-            type=$(get_or_null ".steps[$step_index].type" "$file")
+            get_or_null ".steps[$step_index].type" "$file" type
 
             case "$type" in
             clone) validate_step_clone $step_index "$file" ;;
@@ -88,8 +92,8 @@ validate_step_clone() {
     local url
     local target
 
-    url=$(get_or_null ".steps[$step_index].url" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
+    get_or_null ".steps[$step_index].url" "$file" url
+    get_or_null ".steps[$step_index].target" "$file" target
 
     if [[ -z "$url" ]]; then
         EXIT_CODE=1
@@ -108,7 +112,7 @@ validate_step_command() {
 
     local cmd
 
-    cmd=$(get_or_null ".steps[$step_index].cmd" "$file")
+    get_or_null ".steps[$step_index].cmd" "$file" cmd
 
     if [[ -z "$cmd" ]]; then
         EXIT_CODE=1
@@ -123,8 +127,8 @@ validate_step_copy() {
     local source
     local target
 
-    source=$(get_or_null ".steps[$step_index].source" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
+    get_or_null ".steps[$step_index].source" "$file" source
+    get_or_null ".steps[$step_index].target" "$file" target
 
     if [[ -z "$source" ]]; then
         EXIT_CODE=1
@@ -145,9 +149,10 @@ validate_step_install() {
     local manager_config
     local packages
 
-    manager=$(get_or_null ".steps[$step_index].manager" "$file")
-    manager_config=$(get_config ".package.manager.$manager")
-    packages=$(get_or_null ".steps[$step_index].packages" "$file")
+    get_or_null ".steps[$step_index].manager" "$file" manager
+    get_or_null ".steps[$step_index].packages" "$file" packages
+
+    get_config ".package.manager.$manager" manager_config
 
     if [[ -z "$manager" ]]; then
         EXIT_CODE=1
@@ -173,8 +178,8 @@ validate_step_link() {
     local source
     local target
 
-    source=$(get_or_null ".steps[$step_index].source" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
+    get_or_null ".steps[$step_index].source" "$file" source
+    get_or_null ".steps[$step_index].target" "$file" target
 
     if [[ -z "$source" ]]; then
         EXIT_CODE=1
@@ -195,9 +200,9 @@ validate_step_service() {
     local name
     local scope
 
-    action=$(get_or_null ".steps[$step_index].action" "$file")
-    name=$(get_or_null ".steps[$step_index].name" "$file")
-    scope=$(get_or_null ".steps[$step_index].scope" "$file")
+    get_or_null ".steps[$step_index].action" "$file" action
+    get_or_null ".steps[$step_index].name" "$file" name
+    get_or_null ".steps[$step_index].scope" "$file" scope
 
     if [[ -z "$action" ]]; then
         echo_error "Missing property: action"

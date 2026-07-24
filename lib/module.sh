@@ -10,9 +10,10 @@ run_module() {
     local steps_count
     local strict
 
-    name=$(get_or_null ".name" "$file")
-    steps_count=$(get_or_null ".steps | length" "$file")
-    strict=$(get_or_null ".strict" "$file")
+    get_or_null ".name" "$file" name
+    get_or_null ".steps | length" "$file" steps_count
+    get_or_null ".strict" "$file" strict
+
     log_directory="$SCRIPT_DIR/logs/$name"
     log_file="$log_directory/$TIMESTAMP.log"
 
@@ -31,7 +32,7 @@ run_module() {
     for ((step_index = 0; step_index < steps_count; step_index++)); do
         local type
 
-        type=$(get_or_null ".steps[$step_index].type" "$file")
+        get_or_null ".steps[$step_index].type" "$file" type
 
         case "$type" in
         clone) git_clone $step_index "$file" "$log_file" ;;
@@ -66,9 +67,9 @@ git_clone() {
     local target
     local url
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
-    url=$(get_or_null ".steps[$step_index].url" "$file")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].target" "$file" target
+    get_or_null ".steps[$step_index].url" "$file" url
 
     echo_step "${description:-"Cloning repository"}"
 
@@ -86,8 +87,8 @@ run_command() {
     local cmd
     local description
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    cmd=$(get_or_null ".steps[$step_index].cmd" "$file")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].cmd" "$file" cmd
 
     echo_step "${description:-"Executing command"}"
 
@@ -108,11 +109,12 @@ copy() {
     local source
     local target
 
-    backup=$(get_config ".backup.enabled")
-    backup_suffix=$(get_config ".backup.suffix")
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    source=$(get_or_null ".steps[$step_index].source" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
+    get_config ".backup.enabled" backup
+    get_config ".backup.suffix" backup_suffix
+
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].source" "$file" source
+    get_or_null ".steps[$step_index].target" "$file" target
 
     echo_step "${description:-"Copying source to target"}"
 
@@ -139,10 +141,11 @@ install_packages() {
     local manager
     local packages
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    manager=$(get_or_null ".steps[$step_index].manager" "$file")
-    packages=$(get_or_null ".steps[$step_index].packages[]" "$file")
-    cmd=$(get_config ".package.manager.$manager")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].manager" "$file" manager
+    get_or_null ".steps[$step_index].packages[]" "$file" packages
+
+    get_config ".package.manager.$manager" cmd
 
     echo_step "${description:-"Installing packages"}"
 
@@ -163,11 +166,12 @@ create_symlink() {
     local source
     local target
 
-    backup=$(get_config ".backup.enabled")
-    backup_suffix=$(get_config ".backup.suffix")
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    source=$(get_or_null ".steps[$step_index].source" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
+    get_config ".backup.enabled" backup
+    get_config ".backup.suffix" backup_suffix
+
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].source" "$file" source
+    get_or_null ".steps[$step_index].target" "$file" target
 
     echo_step "${description:-"Linking source to target"}"
 
@@ -195,10 +199,10 @@ manage_service() {
     local name
     local scope
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    action=$(get_or_null ".steps[$step_index].action" "$file")
-    name=$(get_or_null ".steps[$step_index].name" "$file")
-    scope=$(get_or_null ".steps[$step_index].scope" "$file")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].action" "$file" action
+    get_or_null ".steps[$step_index].name" "$file" name
+    get_or_null ".steps[$step_index].scope" "$file" scope
 
     echo_step "${description:-"Managing service"}"
 

@@ -11,7 +11,8 @@ check_not_root() {
 
 run_sudo() {
     local interval
-    interval=$(get_config ".sudo_interval")
+
+    get_config ".sudo_interval" interval
 
     sudo -v
 

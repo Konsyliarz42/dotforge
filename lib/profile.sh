@@ -6,8 +6,8 @@ run_profile() {
     local name
     local modules
 
-    name=$(get_or_null ".name" "$file")
-    modules=$(get_or_null ".modules[]" "$file")
+    get_or_null ".name" "$file" name
+    get_or_null ".modules[]" "$file" modules
 
     echo_profile "$name"
 
