@@ -1,7 +1,7 @@
 validate_profile() {
     local file="$1"
 
-    echo_info "$(realpath "$file")"
+    echo_info "Profile:" " $(realpath "$file")"
 
     local name
     local modules
@@ -23,7 +23,7 @@ validate_profile() {
 validate_module() {
     local file="$1"
 
-    echo_info "$(realpath "$file")"
+    echo_info "Module:" " $(realpath "$file")"
 
     local name
     local strict
@@ -48,7 +48,10 @@ validate_module() {
         case "$strict" in
         true) ;;
         false) ;;
-        *)     EXIT_CODE=1; echo_error "$file: Strict must be a boolean" ;;
+        *)
+            EXIT_CODE=1
+            echo_error "$file: Strict must be a boolean"
+            ;;
         esac
     fi
 
@@ -58,6 +61,8 @@ validate_module() {
     else
         for ((step_index = 0; step_index < steps_count; step_index++)); do
             local type
+
+            echo_info "Step:" " $step_index"
 
             type=$(get_or_null ".steps[$step_index].type" "$file")
 
@@ -106,7 +111,7 @@ validate_step_command() {
     cmd=$(get_or_null ".steps[$step_index].cmd" "$file")
 
     if [[ -z "$cmd" ]]; then
-            EXIT_CODE=1
+        EXIT_CODE=1
         echo_error "$file - $step_index: Missing property: cmd"
     fi
 }
@@ -203,7 +208,10 @@ validate_step_service() {
         restart) ;;
         start) ;;
         stop) ;;
-        *)     EXIT_CODE=1; echo_error "$file - $step_index: Unknown action" ;;
+        *)
+            EXIT_CODE=1
+            echo_error "$file - $step_index: Unknown action"
+            ;;
         esac
     fi
 
@@ -219,7 +227,10 @@ validate_step_service() {
         case "$scope" in
         user) ;;
         system) ;;
-        *)     EXIT_CODE=1; echo_error "$file - $step_index: Unknown scope" ;;
+        *)
+            EXIT_CODE=1
+            echo_error "$file - $step_index: Unknown scope"
+            ;;
         esac
     fi
 }

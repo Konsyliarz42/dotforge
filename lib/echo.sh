@@ -97,11 +97,13 @@ echo_error() {
 }
 
 echo_info() {
-    local text="$1"
+    local pre_text="$1"
+    local text="$2"
 
     local format
     format="\033[0;34m%s\033[0m"
+    format+="%s"
     format+="\n"
 
-    printf "$format" "$text"
+    printf "$format" "$pre_text" "$text"
 }
