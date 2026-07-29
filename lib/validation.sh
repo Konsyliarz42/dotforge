@@ -105,12 +105,25 @@ validate_step_command() {
     local file="$2"
 
     local cmd
+    local optional
 
     get_or_null ".steps[$step_index].cmd" "$file" cmd
+    get_or_null ".steps[$step_index].optional" "$file" optional
 
     if [[ -z "$cmd" ]]; then
         EXIT_CODE=1
         echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: cmd"
+    fi
+
+    if [[ ! -z "$optional" ]]; then
+        case "$optional" in
+        true) ;;
+        false) ;;
+        *)
+            EXIT_CODE=1
+            echo_error_validate "$(realpath "$file")" "optional must be a boolean"
+            ;;
+        esac
     fi
 }
 
@@ -153,7 +166,7 @@ validate_step_install() {
         get_config ".package.manager.$manager" manager_config
         if [[ -z "$manager_config" ]]; then
             EXIT_CODE=1
-            echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown manager"
+            echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown manager: $manager"
         fi
     fi
 

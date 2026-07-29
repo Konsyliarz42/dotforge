@@ -9,7 +9,8 @@ echo_hello() {
     fi
 
     local format
-    format="\033[1m%s\033[0m"
+    format="\n"
+    format+="\033[1m%s\033[0m"
     format+="\040\033[30m%s\033[0m"
     format+="\n"
 
@@ -17,10 +18,10 @@ echo_hello() {
 }
 
 echo_profile() {
-    local text="Processing profile: $1"
+    local text="$1"
 
     local format
-    format="%s"
+    format="\033[1;36m%s\033[0m"
     format+="\n"
 
     printf "$format" "$text"
@@ -32,8 +33,8 @@ echo_module() {
 
     local format
     format="\n"
-    format+="\033[0;34m%s\033[0m"
-    format+="%s"
+    format+="\033[1;34m%s\033[0m"
+    format+="\033[1m%s\033[0m"
     format+="\n"
 
     printf "$format" "$decorator" "$text"
@@ -73,6 +74,21 @@ echo_nok() {
     format="\033[1A"
     format+="\033[%dG"
     format+="\033[0;31m%s\033[0m"
+    format+="\n"
+
+    local col
+    col=$((80 - ${#text} + 1))
+
+    printf "$format" "$col" "$text"
+}
+
+echo_ok_nok() {
+    local text="NOK"
+
+    local format
+    format="\033[1A"
+    format+="\033[%dG"
+    format+="\033[0;33m%s\033[0m"
     format+="\n"
 
     local col

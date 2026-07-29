@@ -15,22 +15,26 @@ path=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+    -c | --config)
+        CONFIG_FILE="$2"
+        shift 2
+        ;;
+
     -p | --profile)
         profile=true
         shift
         ;;
 
     -*)
-        echo_error "Unknown argument"
+        echo_error "Unknown argument: $1"
         exit 1
         ;;
 
     *)
         if [[ -n "$path" ]]; then
-            echo_error ""
+            echo_error "Only one path per validate"
             exit 1
         fi
-
         path="$1"
         shift
         ;;
@@ -38,7 +42,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$path" ]]; then
-    echo_error "Path is required"
+    echo "Usage: $0 [-c CONFIG] [-p PROFILE] <path>"
     exit 1
 fi
 

@@ -11,7 +11,7 @@ run_profile() {
 
     echo_profile "$name"
 
-    for module in "$modules[@]"; do
+    for module in "${modules[@]}"; do
         run_module "$module"
     done
 }
