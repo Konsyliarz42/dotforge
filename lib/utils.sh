@@ -3,30 +3,48 @@
 get_or_null() {
     local key="$1"
     local file="$2"
-
-    local value
+    local result_name="$3"
+    local -n result="$result_name"
 
     if [[ "$key" == *"[]" ]]; then
-        mapfile -t value < <(yq -r "$key" "$file")
-        echo "${value[@]}"
+        result=()
+        mapfile -t result < <(yq -r "$key" "$file")
     else
-        value=$(yq -r "$key // \"\"" "$file")
-        echo "$value"
+        result="$(yq -r "$key // \"\"" "$file")"
     fi
 }
 
 get_config() {
     local key="$1"
+    local result_name="$2"
+    local -n result="$result_name"
 
-    local value=""
-
-    if [[ -n "$CONFIG_FILE" ]]; then
-        value=$(get_or_null "$key" "$CONFIG_FILE")
+    if [[ "$key" == *"[]" ]]; then
+        result=()
+        if [[ -n "$CONFIG_FILE" ]]; then
+            get_or_null "$key" "$CONFIG_FILE" "$result_name"
+        fi
+        if ((${#result[@]} == 0)); then
+            get_or_null "$key" "$DEFAULT_CONFIG_FILE" "$result_name"
+        fi
+    else
+        result=""
+        if [[ -n "$CONFIG_FILE" ]]; then
+            get_or_null "$key" "$CONFIG_FILE" "$result_name"
+        fi
+        if [[ -z "$result" ]]; then
+            get_or_null "$key" "$DEFAULT_CONFIG_FILE" "$result_name"
+        fi
     fi
+}
 
-    if [[ -z "$value" ]]; then
-        value=$(get_or_null "$key" "$DEFAULT_CONFIG_FILE")
+get_path() {
+    local path="$1"
+    local relative="${2:-/}"
+
+    if [[ "$path" == /* ]]; then
+        echo "$path"
+    else
+        echo "$relative/$path"
     fi
-
-    echo "$value"
 }

@@ -27,7 +27,7 @@ sudo snap install yq
 #### Alpine
 
 ```bash
-sudo apk add bash git sudo yq
+sudo apk add bash git sudo yq-go
 ```
 
 ## How to use
@@ -127,6 +127,6 @@ _Execute other module._
 _Manage systemd service._
 
 - `description` - [Optional] Text displayed in terminal during executing
-- `name` - Name of the service
 - `scope` - `user` | `system`
 - `action` - `disable` | `enable` | `restart` | `start` | `stop`
+- `name` - Name of the service

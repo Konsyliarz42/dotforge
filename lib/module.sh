@@ -1,5 +1,7 @@
 #!/bin/bash
 
+FORCED_OK=0
+
 run_module() {
     local file="$1"
 
@@ -10,9 +12,10 @@ run_module() {
     local steps_count
     local strict
 
-    name=$(get_or_null ".name" "$file")
-    steps_count=$(get_or_null ".steps | length" "$file")
-    strict=$(get_or_null ".strict" "$file")
+    get_or_null ".name" "$file" name
+    get_or_null ".steps | length" "$file" steps_count
+    get_or_null ".strict" "$file" strict
+
     log_directory="$SCRIPT_DIR/logs/$name"
     log_file="$log_directory/$TIMESTAMP.log"
 
@@ -31,7 +34,8 @@ run_module() {
     for ((step_index = 0; step_index < steps_count; step_index++)); do
         local type
 
-        type=$(get_or_null ".steps[$step_index].type" "$file")
+        FORCED_OK=0
+        get_or_null ".steps[$step_index].type" "$file" type
 
         case "$type" in
         clone) git_clone $step_index "$file" "$log_file" ;;
@@ -39,16 +43,19 @@ run_module() {
         copy) copy $step_index "$file" "$log_file" ;;
         install) install_packages $step_index "$file" "$log_file" ;;
         link) create_symlink $step_index "$file" "$log_file" ;;
-        module) run_submodule $step_index "$file" "$log_file" ;;
         service) manage_service $step_index "$file" "$log_file" ;;
         esac
 
         if [ $? -eq 0 ]; then
-            echo_ok
+            if ((FORCED_OK)); then
+                echo_ok_nok
+            else
+                echo_ok
+            fi
         else
             echo_nok
             EXIT_CODE=1
-            if [ $strict == "true" ]; then
+            if [[ "$strict" == "true" ]]; then
                 echo_log "Step failed, stop executing the module" "$log_file"
                 return 1
             fi
@@ -67,14 +74,16 @@ git_clone() {
     local target
     local url
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
-    url=$(get_or_null ".steps[$step_index].url" "$file")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].target" "$file" target
+    get_or_null ".steps[$step_index].url" "$file" url
+
+    target="$(get_path "$target" "$HOME")"
 
     echo_step "${description:-"Cloning repository"}"
 
     echo_log "> git clone $url $target" "$log_file"
-    # git clone "$url" "$target" >> "$log_file"
+    git clone "$url" "$target" &>>"$log_file"
 }
 
 run_command() {
@@ -85,15 +94,26 @@ run_command() {
     echo_log "Executing step: $step_index(command)" "$log_file"
 
     local cmd
+    local code
     local description
+    local optional
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    cmd=$(get_or_null ".steps[$step_index].cmd" "$file")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].cmd" "$file" cmd
+    get_or_null ".steps[$step_index].optional" "$file" optional
 
     echo_step "${description:-"Executing command"}"
 
     echo_log "> eval $cmd" "$log_file"
-    # eval "$cmd" >> "$log_file"
+    eval "$cmd" &>>"$log_file"
+    code=$?
+
+    if [[ "$optional" == "true" && $code -ne 0 ]]; then
+        FORCED_OK=1
+        return 0
+    else
+        return $code
+    fi
 }
 
 copy() {
@@ -109,23 +129,27 @@ copy() {
     local source
     local target
 
-    backup=$(get_config ".backup.enabled")
-    backup_suffix=$(get_config ".backup.suffix")
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    source=$(get_or_null ".steps[$step_index].source" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
+    get_config ".backup.enabled" backup
+    get_config ".backup.suffix" backup_suffix
+
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].source" "$file" source
+    get_or_null ".steps[$step_index].target" "$file" target
+
+    source="$(get_path "$source" $(dirname "$SCRIPT_DIR"))"
+    target="$(get_path "$target" "$HOME")"
 
     echo_step "${description:-"Copying source to target"}"
 
     if [[ -e "$target" && "$backup" == "true" ]]; then
         echo_log "> mv $target ${target}${backup_suffix}" "$log_file"
-        # mv "$target" "${target}${backup_suffix}" >> "$log_file"
+        mv "$target" "${target}${backup_suffix}" &>>"$log_file"
     fi
 
     echo_log "> mkdir -p $(dirname "$target")" "$log_file"
-    # mkdir -p "$(dirname "$target")" >> "$log_file"
+    mkdir -p "$(dirname "$target")" &>>"$log_file"
     echo_log "> cp -r $source $target" "$log_file"
-    # cp -r "$source" "$target" >> "$log_file"
+    cp -r "$source" "$target" &>>"$log_file"
 }
 
 install_packages() {
@@ -140,15 +164,16 @@ install_packages() {
     local manager
     local packages
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    manager=$(get_or_null ".steps[$step_index].manager" "$file")
-    packages=$(get_or_null ".steps[$step_index].packages[]" "$file")
-    cmd=$(get_config ".package.manager.$manager")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].manager" "$file" manager
+    get_or_null ".steps[$step_index].packages[]" "$file" packages
+
+    get_config ".package.manager.$manager" cmd
 
     echo_step "${description:-"Installing packages"}"
 
     echo_log "> eval $cmd ${packages[*]}" "$log_file"
-    # eval "$cmd" "${packages[@]}" >> "$log_file"
+    eval "$cmd" "${packages[@]}" &>>"$log_file"
 }
 
 create_symlink() {
@@ -164,40 +189,27 @@ create_symlink() {
     local source
     local target
 
-    backup=$(get_config ".backup.enabled")
-    backup_suffix=$(get_config ".backup.suffix")
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    source=$(get_or_null ".steps[$step_index].source" "$file")
-    target=$(get_or_null ".steps[$step_index].target" "$file")
+    get_config ".backup.enabled" backup
+    get_config ".backup.suffix" backup_suffix
+
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].source" "$file" source
+    get_or_null ".steps[$step_index].target" "$file" target
+
+    source="$(get_path "$source" $(dirname "$SCRIPT_DIR"))"
+    target="$(get_path "$target" "$HOME")"
 
     echo_step "${description:-"Linking source to target"}"
 
     if [[ -e "$target" && "$backup" == "true" ]]; then
         echo_log "> mv $target ${target}${backup_suffix}" "$log_file"
-        # mv "$target" "${target}${backup_suffix}" >> "$log_file"
+        mv "$target" "${target}${backup_suffix}" &>>"$log_file"
     fi
 
     echo_log "> mkdir -p $(dirname "$target")" "$log_file"
-    # mkdir -p "$(dirname "$target")" >> "$log_file"
-    echo_log "> ln -sf $(realpath "$source") $target" "$log_file"
-    # ln -sf "$(realpath "$source")" "$target" >> "$log_file"
-}
-
-run_submodule() {
-    local step_index="$1"
-    local file="$2"
-    local log_file="$3"
-
-    echo_log "Executing step: $step_index(module)" "$log_file"
-
-    local path
-    local name
-
-    path=$(get_or_null ".steps[$step_index].path" "$file")
-    name=$(get_or_null ".name" "$path")
-
-    echo_log "> run_module $path" "$log_file"
-    run_module "$path"
+    mkdir -p "$(dirname "$target")" &>>"$log_file"
+    echo_log "> ln -sf $source $target" "$log_file"
+    ln -sf "$source" "$target" &>>"$log_file"
 }
 
 manage_service() {
@@ -213,10 +225,10 @@ manage_service() {
     local name
     local scope
 
-    description=$(get_or_null ".steps[$step_index].description" "$file")
-    action=$(get_or_null ".steps[$step_index].action" "$file")
-    name=$(get_or_null ".steps[$step_index].name" "$file")
-    scope=$(get_or_null ".steps[$step_index].scope" "$file")
+    get_or_null ".steps[$step_index].description" "$file" description
+    get_or_null ".steps[$step_index].action" "$file" action
+    get_or_null ".steps[$step_index].name" "$file" name
+    get_or_null ".steps[$step_index].scope" "$file" scope
 
     echo_step "${description:-"Managing service"}"
 
@@ -226,5 +238,5 @@ manage_service() {
     esac
 
     echo_log "> eval $cmd $action $name" "$log_file"
-    # eval "$cmd" "$action" "$name" >> "$log_file"
+    eval "$cmd" "$action" "$name" &>>"$log_file"
 }
