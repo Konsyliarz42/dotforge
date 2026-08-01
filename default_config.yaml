@@ -1,10 +1,13 @@
+# Define how often sudo should be called to keep it alive during the program's execution (in seconds)
 sudo_interval: 60
 
+# Create a backup before copying/linking a file
 backup:
   enabled: true
   suffix: ".bak"
 
-package:
+# Managers used to install packages
+install:
   manager:
     apk: "sudo apk add"
     apt: "sudo apt-get install -y"

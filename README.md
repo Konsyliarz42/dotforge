@@ -6,127 +6,220 @@ Automation engine driven by declarative YAML modules.
 
 - `bash` - Main language
 - `git` - Used to clone repositories
-- `sudo` - Installing packages and manage systemd services
-- `yq` - Parsing YAML modules
+- `sudo` - Used to install packages and manage systemd services
+- `yq` - Used to parse YAML modules
 
-### Installation
+### Alpine
 
-#### Arch Linux
+```bash
+sudo apk add bash git sudo yq-go
+```
+
+### Arch Linux
 
 ```bash
 sudo pacman -Syu bash git sudo go-yq
 ```
 
-#### Ubuntu
+### Fedora
+
+```bash
+sudo dnf install bash git sudo yq
+```
+
+### Ubuntu
 
 ```bash
 sudo apt install bash git sudo
 sudo snap install yq
 ```
 
-#### Alpine
-
-```bash
-sudo apk add bash git sudo yq-go
-```
-
 ## How to use
 
-1. Add this repository as [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
+1. Add this repository as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to your dotfiles
 
    ```txt
-   [submodule ".dotforge"]
+   [submodule "dotforge"]
        path = .dotforge
        url = https://github.com/Konsyliarz42/dotforge.git
-       branch = 1.0.0
+       branch = <branch_or_tag>
    ```
 
-2. Create **executable** `dotforge.sh`
+2. Create an **executable** `dotforge.sh` in the root of your dotfiles
 
    ```bash
     #!/bin/bash
+    set -euo pipefail
 
     git submodule update --init --recursive
 
-    ./.dotforge/validate.sh
-    ./.dotforge/run.sh "$*"
+    profile_path="$1"
+
+    ./.dotforge/validate.sh -p "$profile_path"
+    ./.dotforge/run.sh "$profile_path"
    ```
 
-3. _[OPTIONAL]_ Add configuration file
-4. Create YAML modules
-5. Run `dotforge.sh`
+3. _[Optional]_ Add a configuration file
+
+   After that, you have to update your `dotforge.sh`
+
+   ```bash
+       #!/bin/bash
+       set -euo pipefail
+
+       git submodule update --init --recursive
+
+       profile_path="$1"
+       config_path="<path_to_config>"
+
+       ./.dotforge/validate.sh -c "$config_path" -p "$profile_path"
+       ./.dotforge/run.sh -c "$config_path" "$profile_path"
+   ```
+
+4. Create a profile and modules
+5. Run your script
+
+   ```bash
+   ./dotforge.sh <profile_path>
+   ```
 
 ## Configuration
 
-Dotforge has their default configuration, but you can change them by creating their own `config.yaml`
+By default, dotforge uses its own config file, `default_config.yaml`.
 
-| Key             | Value                 | Description                           |
-| --------------- | --------------------- | ------------------------------------- |
-| sudo_interval   | 60                    | Time to keep sudo active              |
-| backup.enabled  | true                  | Before any copy or link create backup |
-| backup.suffix   | ".bak"                | Suffix for backup files               |
-| package.manager | apk, apt, dnf, pacman | Manager used to install packages      |
+You can create your own config file in YAML format. Dotforge will then search your config first, and if a property doesn't exist there, it will fall back to the default value.
 
-## Modules
+## Logs
 
-Each module must have three properties:
+All stdout and stderr are saved in the `logs` directory, grouped by module.
 
-- `name` - Name of module
-- `strict` - Boolean to stop executing when step failed
-- `steps` - Array of steps to execute
+## Validation
 
-### Steps
+It's highly recommended to validate a profile before executing it on a new machine.
+If you're developing new modules, you can always check a single module using:
 
-#### `clone`
+```bash
+validate.sh <module_path>
+```
 
-_Clone git repository._
+or check the whole profile:
 
-- `description` - [Optional] Text displayed in terminal during executing
-- `url` - URL to git repository
-- `target` - Path to directory
+```bash
+validate.sh -p <profile_path>
+```
 
-#### `command`
+## Basic concepts
 
-_Execute any command._
+Dotforge defines two types of YAML files:
 
-- `description` - [Optional] Text displayed in terminal during executing
-- `cmd` - Command to execute
+### Profile
 
-#### `copy`
+This file defines the order in which modules will be executed.
 
-_Copy file from dotfiles to the machine._
+The file requires this structure:
 
-- `description` - [Optional] Text displayed in terminal during executing
-- `source` - Path to file in your dotfiles
-- `target` - Path to file on the machine
+```yaml
+name: <name_of_the_profile>
 
-#### `install`
+modules:
+    - <module_path>
+    - <module_path>
+    ...
+```
 
-_Install packages via defined manager._
+### Module
 
-- `description` - [Optional] Text displayed in terminal during executing
-- `manager` - Manager used to install packages. If you want to use custom managers you have to defined them in your config file.
-- `packages` - Array of packages to install
+This file should define what needs to be executed to fully set up a program (install packages, clone/link configuration, enable a daemon, etc.).
 
-#### `link`
+The file requires this structure:
 
-_Create a symlink file from dotfiles to the machine._
+```yaml
+name: <name_of_the_module>
+strict: <enable_disable_strict_mode>
 
-- `description` - [Optional] Text displayed in terminal during executing
-- `source` - Path to file in your dotfiles
-- `target` - Path to file on the machine
+steps:
+    - type: <type_of_step>
+      <step_options>
+    ...
+```
 
-#### `module`
+> Strict mode requires that all steps finish with an exit code of 0.
 
-_Execute other module._
+#### Steps
 
-- `path` - Path to module
+Steps define commands to execute. Each step has its own type and options:
 
-#### `service`
+##### `clone`
 
-_Manage systemd service._
+Clones a git repository.
 
-- `description` - [Optional] Text displayed in terminal during executing
-- `scope` - `user` | `system`
-- `action` - `disable` | `enable` | `restart` | `start` | `stop`
-- `name` - Name of the service
+| Option        | Type   | Description           |
+| ------------- | ------ | --------------------- |
+| `description` | string | Text to display       |
+| `target`\*    | string | Path to clone into    |
+| `url`\*       | string | URL of the repository |
+
+> _\* - Option is required_
+
+##### `command`
+
+Executes a custom command.
+
+| Option        | Type    | Description                                                          |
+| ------------- | ------- | -------------------------------------------------------------------- |
+| `cmd`\*       | string  | Command to execute                                                   |
+| `description` | string  | Text to display                                                      |
+| `optional`    | boolean | Allow the step to exit with a code other than 0, even in strict mode |
+
+> _\* - Option is required_
+
+##### `copy`
+
+Copies a file to a specific path and creates its parent directories.
+
+| Option        | Type   | Description                                        |
+| ------------- | ------ | -------------------------------------------------- |
+| `description` | string | Text to display                                    |
+| `source`\*    | string | Path to the file (relative to the repository root) |
+| `target`\*    | string | Path to the file (relative to the user's home)     |
+
+> _\* - Option is required_
+
+##### `install`
+
+Installs packages via a manager.
+
+> You can define your own managers in the config file, but remember to install them before you want to use them.
+
+| Option        | Type   | Description                                    |
+| ------------- | ------ | ---------------------------------------------- |
+| `description` | string | Text to display                                |
+| `manager`\*   | string | Name of the manager defined in the config file |
+| `packages`\*  | array  | List of the packages to install                |
+
+> _\* - Option is required_
+
+##### `link`
+
+Creates a link to a specific path and creates its parent directories.
+
+| Option        | Type   | Description                                        |
+| ------------- | ------ | -------------------------------------------------- |
+| `description` | string | Text to display                                    |
+| `source`\*    | string | Path to the file (relative to the repository root) |
+| `target`\*    | string | Path to the file (relative to the user's home)     |
+
+> _\* - Option is required_
+
+##### `service`
+
+Manages a systemd service.
+
+| Option        | Type   | Description                                     |
+| ------------- | ------ | ----------------------------------------------- |
+| `action`\*    | string | `disable`, `enable`, `restart`, `start`, `stop` |
+| `description` | string | Text to display                                 |
+| `name`\*      | string | Name of the service                             |
+| `scope`\*     | string | `system`, `user`                                |
+
+> _\* - Option is required_

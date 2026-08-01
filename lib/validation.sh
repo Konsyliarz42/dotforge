@@ -163,7 +163,7 @@ validate_step_install() {
         EXIT_CODE=1
         echo_error_validate "$(realpath "$file") - [$step_index]" "Missing property: manager"
     else
-        get_config ".package.manager.$manager" manager_config
+        get_config ".install.manager.$manager" manager_config
         if [[ -z "$manager_config" ]]; then
             EXIT_CODE=1
             echo_error_validate "$(realpath "$file") - [$step_index]" "Unknown manager: $manager"

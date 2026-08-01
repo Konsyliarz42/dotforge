@@ -168,7 +168,7 @@ install_packages() {
     get_or_null ".steps[$step_index].manager" "$file" manager
     get_or_null ".steps[$step_index].packages[]" "$file" packages
 
-    get_config ".package.manager.$manager" cmd
+    get_config ".install.manager.$manager" cmd
 
     echo_step "${description:-"Installing packages"}"
 
